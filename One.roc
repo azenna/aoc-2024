@@ -1,4 +1,16 @@
-module [ partOne, partTwo ]
+module [ dayOne ]
+
+import Utils
+import pf.Stdout
+
+dayOne =
+    lines = Utils.readLines! "data/day_one.txt"
+
+    one = Task.fromResult! (partOne lines)
+    Num.toStr one |> Stdout.line!
+
+    two = Task.fromResult! (partTwo lines)
+    Num.toStr two |> Stdout.line!
 
 parseLine =  \line ->
     nums = List.keepOks (Str.splitOn line "   ") \str ->
