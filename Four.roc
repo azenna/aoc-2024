@@ -10,29 +10,47 @@ dayFour =
     |> Num.toStr
     |> Stdout.line!
 
-partOne = \lines ->
-    parse = List.map lines Str.toUtf8
+    lines
+    |> partTwo
+    |> Num.toStr
+    |> Stdout.line!
 
-    starts =
-        List.mapWithIndex parse \cs, i ->
-            lineStarts = List.mapWithIndex cs \c, j ->
-                if c == 'X' then
-                    Ok (i, j)
-                else
-                    Err Nothing
-            List.keepOks lineStarts \r -> r
-        |> List.joinMap \l -> l
+getStarts = \char, board ->
+    List.mapWithIndex board \cs, i ->
+        lineStarts = List.mapWithIndex cs \c, j ->
+            if c == char then
+                Ok (i, j)
+            else
+                Err Nothing
+        List.keepOks lineStarts \r -> r
+    |> List.joinMap \l -> l
+
+
+makeMove = \(x, y), (dirx, diry) ->
+    i = Num.toU64Checked? (Num.toI64 x + dirx)
+    j = Num.toU64Checked? (Num.toI64 y + diry)
+    Ok (i, j)
+
+getAt = \i, j, board ->
+    List.get? board i
+    |> (\l -> List.get l j)
+
+getRelative = \cur, dir, board ->
+    (i, j) = makeMove? cur dir
+    getAt i j board
+
+
+partOne = \lines ->
+    board = List.map lines Str.toUtf8
+
+    starts = getStarts 'X' board
 
     search = \char, cur, dir ->
         when char is
             'S' -> Ok Xmas
             _ ->
-
-                i = Num.toU64Checked? (Num.toI64 cur.0 + dir.0)
-                j = Num.toU64Checked? (Num.toI64 cur.1 + dir.1)
-
-                hold = List.get? parse i
-                actNext = List.get? parse i |> (\l -> List.get l j)?
+                (i, j) = makeMove? cur dir
+                actNext = getAt? i j board
 
                 shouldNext =
                     if char == 'X' then
@@ -59,3 +77,32 @@ partOne = \lines ->
             search 'X' start dir
 
     List.len matches
+
+partTwo = \lines ->
+    board = List.map lines Str.toUtf8
+    starts = getStarts 'A' board
+
+    otherCorner = \char ->
+        when char is
+            'M' -> Ok 'S'
+            'S' -> Ok 'M'
+            _ -> Err Nothing
+
+    search = \cur ->
+        topLeft = getRelative? cur (-1, -1) board
+        botRight = getRelative? cur (1, 1) board
+
+        topRight  = getRelative? cur (-1, 1) board
+        botLeft = getRelative? cur (1, -1) board
+
+        dbg (topLeft, botRight)
+        dbg (topRight, botLeft)
+
+        if otherCorner? topLeft == botRight && otherCorner? topRight == botLeft then
+            dbg "got here"
+            Ok Xmas
+        else
+            Err Nothing
+
+    List.keepOks starts search
+    |> List.len
