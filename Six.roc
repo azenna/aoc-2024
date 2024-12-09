@@ -4,7 +4,7 @@ import Utils
 import pf.Stdout
 
 daySix =
-    lines = Utils.readLines! "data/day_six.txt"
+    lines = Utils.readLines! "test/day_six.txt"
     parsed : (Set (I64, I64), (I64, I64))
     parsed = List.walkWithIndex lines (Set.empty {}, (0, 0)) \acc, line, i ->
         Str.walkUtf8WithIndex line acc \(set, start), c, j ->
